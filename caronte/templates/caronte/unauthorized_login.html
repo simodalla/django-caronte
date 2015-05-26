@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Login non autorizzato{% endblock %}
+
+{% block content %}
+    <div id="unauthorized_login">
+    <h1>Login non autorizzato</h1>
+
+    <p>Siamo spiacenti, il tuo utente o il tuo dominio non è <strong>autorizzato</strong> ad effettuare il login.<p>
+    <br><br>
+    <p>
+        Puoi aprire un ticket di assistenza su
+        <a href="http://openpa.zola.net/admin/openhelpdesk/ticket/add/">OpenHelpdesk</a>
+    </p>
+    </div>
+{% endblock %}

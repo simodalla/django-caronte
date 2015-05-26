@@ -17,10 +17,10 @@ User = get_user_model()
 class AuthorizationSocialAccountAdapter(DefaultSocialAccountAdapter):
 
     @staticmethod
-    def _response_user_is_denied_or_inactive(sociallogin, reason=None):
+    def _response_user_is_denied_or_inactive(username, reason=None):
         try:
             LogUnauthorizedLogin.objects.create(
-                username=sociallogin.account.user.email, reason=reason)
+                username=username, reason=reason)
         except Exception:
             pass
         return ImmediateHttpResponse(redirect(
@@ -29,15 +29,15 @@ class AuthorizationSocialAccountAdapter(DefaultSocialAccountAdapter):
     @staticmethod
     def _login_authorization(user):
         try:
-            return LoginAuthorization.objects.get(email=user.email)
+            return LoginAuthorization.objects.get(user__email=user.email)
         except LoginAuthorization.DoesNotExist:
             return None
 
     @staticmethod
-    def _is_in_authorized_domain(user):
-        if not user.email or '@' not in user.email:
+    def _is_in_authorized_domain(email):
+        if '@' not in email:
             return False
-        domain = user.email.split('@')[1]
+        domain = email.split('@')[1]
         try:
             AuthorizedDomain.objects.get(domain=domain)
             return True
@@ -45,31 +45,31 @@ class AuthorizationSocialAccountAdapter(DefaultSocialAccountAdapter):
             return False
 
     def pre_social_login(self, request, sociallogin):
-        print(sociallogin)
         user = sociallogin.user
-        email = sociallogin.user.email
-        import ipdb
-        ipdb.set_trace()
+        # email = sociallogin.user.email
+        # import ipdb
+        # ipdb.set_trace()
 
-        # email = sociallogin.account.user.email
-        authorized_user = self._login_authorization(sociallogin.account.user)
+        authorized_user = self._login_authorization(user)
 
         if authorized_user:
             if authorized_user.is_denied:
                 # login of user denied
-                raise self._response_user_is_denied_or_inactive(sociallogin,
-                                                                'deny')
+                raise self._response_user_is_denied_or_inactive(
+                    user.email, 'deny')
         else:
             # login of domain not authorized
-            if not self._is_in_authorized_domain(sociallogin.account.user):
-                raise self._response_user_is_denied_or_inactive(sociallogin,
-                                                                'domain')
+            if not self._is_in_authorized_domain(user.email):
+                raise self._response_user_is_denied_or_inactive(
+                    user.email, 'domain')
+        print("*****************************************")
         try:
-            local_user = User.objects.get(email=email)
+            local_user = User.objects.get(email=user.email)
+            print(local_user)
             if not local_user.is_active:
                 # login of user not active
-                raise self._response_user_is_denied_or_inactive(sociallogin,
-                                                                'notactive')
+                raise self._response_user_is_denied_or_inactive(
+                    user.email, 'notactive')
             if not sociallogin.is_existing:  # sociallogin not exist
                 User.objects.set_fields_from_authorized(local_user,
                                                         authorized_user)
@@ -81,9 +81,10 @@ class AuthorizationSocialAccountAdapter(DefaultSocialAccountAdapter):
                 sociallogin.save(request)
                 User.objects.email_link_sociallogin(request, sociallogin)
         except User.DoesNotExist:
-            sociallogin.account.user.set_fields_from_authorized(
-                authorized_user)
-            User.objects.email_new_sociallogin(request, sociallogin)
+            User.objects.set_fields_from_authorized(user, authorized_user)
+            # sociallogin.account.user.set_fields_from_authorized(
+            #     authorized_user)
+            User.objects.email_new_sociallogin(request, user)
 
 
 class AuthorizationAccountAdapter(DefaultAccountAdapter):

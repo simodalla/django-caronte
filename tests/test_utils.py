@@ -23,22 +23,14 @@ class TestAuthorizationService(TestCase):
         self.user = EmailUser(email=self.email)
         self.service = AuthorizationService(user=self.user)
 
-    def test_login_authorization_raise_exc_if_user_not_exist(self):
-        with pytest.raises(LoginAuthorization.DoesNotExist) as exinfo:
-            login = self.service.login_authorization
-        self.assertEqual('', str(exinfo.value))
-
     def test_login_authorization_raise_exc_if_loginauthorization_not_exist(self):
-        self.user.save()
-        # LoginAuthorization.objects.create(user=self.user)
         with pytest.raises(LoginAuthorization.DoesNotExist) as exinfo:
             login_auth = self.service.login_authorization
         self.assertIn('LoginAuthorization matching query does not exist',
                       str(exinfo.value))
 
     def test_login_authorization_return_loginauthorization_obj(self):
-        self.user.save()
-        LoginAuthorization.objects.create(user=self.user)
+        LoginAuthorization.objects.create(username=self.user.email)
         login_auth = self.service.login_authorization
         self.assertTrue(isinstance(login_auth, LoginAuthorization))
 

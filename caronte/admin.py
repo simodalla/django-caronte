@@ -14,13 +14,13 @@ class AuthorizedDomainAdmin(admin.ModelAdmin):
 
 @admin.register(LoginAuthorization)
 class AuthorizedUserAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_denied', 'is_staff', 'is_superuser',)
+    list_display = ('username', 'is_denied', 'is_staff', 'is_superuser',)
 
-    # grapelli autocomplete
-    raw_id_fields = ('user',)
-    autocomplete_lookup_fields = {
-        'fk': ['user'],
-    }
+    # # grapelli autocomplete
+    # raw_id_fields = ('user',)
+    # autocomplete_lookup_fields = {
+    #     'fk': ['user'],
+    # }
 
 
 @admin.register(LogUnauthorizedLogin)

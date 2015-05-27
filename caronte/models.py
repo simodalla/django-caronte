@@ -14,7 +14,7 @@ class AuthorizedDomain(models.Model):
 
 
 class LoginAuthorization(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True)
+    username = models.CharField(max_length=254, unique=True)
     is_staff = models.BooleanField(
         _('staff status'), default=False,
         help_text=_('Designates whether the user can log into this admin '
@@ -28,8 +28,8 @@ class LoginAuthorization(models.Model):
         help_text=_('Designates that this user is denied to login.'))
 
     class Meta:
-        verbose_name = _('authorized user')
-        verbose_name_plural = _('authorized users')
+        verbose_name = _('login authorization')
+        verbose_name_plural = _('login authorizations')
 
 
 class LogUnauthorizedLogin(models.Model):

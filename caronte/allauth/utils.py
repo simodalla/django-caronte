@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.admin.templatetags.admin_urls import admin_urlname
 from django.core.mail import mail_admins
 from django.core.urlresolvers import reverse
-from django.core.validators import validate_email
 from django.shortcuts import redirect
 from django.template import loader, Context
 from django.utils.html import strip_tags
@@ -33,12 +32,8 @@ class AuthorizationService:
     @property
     def login_authorization(self):
         try:
-            user = User.objects.get_by_natural_key(
-                getattr(self.user, User.USERNAME_FIELD, ''))
-        except User.DoesNotExist:
-            raise LoginAuthorization.DoesNotExist()
-        try:
-            return LoginAuthorization.objects.get(user=user)
+            return LoginAuthorization.objects.get(
+                username=getattr(self.user, User.USERNAME_FIELD, ''))
         except LoginAuthorization.DoesNotExist as exc:
             raise exc
 
@@ -63,9 +58,14 @@ class AuthorizationService:
             return False
 
     def set_fields_from_authorized(self, authorized_user, fields=None):
-        fields = fields or ['is_staff', 'is_superuser']
-        for field in fields:
-            setattr(self.user, field, getattr(authorized_user, field, False))
+        if authorized_user:
+            fields = fields or ['is_staff', 'is_superuser']
+            for field in fields:
+                setattr(self.user,
+                        field,
+                        getattr(authorized_user, field, False))
+            return True
+        return False
 
     def copy_fields(self, source_user, fields=None, dest_update=True):
         """
